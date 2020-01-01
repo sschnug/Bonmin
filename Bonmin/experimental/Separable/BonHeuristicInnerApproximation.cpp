@@ -47,8 +47,8 @@ HeuristicInnerApproximation::HeuristicInnerApproximation(BonminSetup * setup) :
 HeuristicInnerApproximation::HeuristicInnerApproximation(
     const HeuristicInnerApproximation &copy) :
     CbcHeuristic(copy),
-        setup_(copy.setup_), 
-        howOften_(copy.howOften_), 
+        setup_(copy.setup_),
+        howOften_(copy.howOften_),
         mip_(new SubMipSolver(*copy.mip_)),
         nbAp_(copy.nbAp_) {
 }
@@ -91,8 +91,8 @@ HeuristicInnerApproximation::~HeuristicInnerApproximation() {
 delete mip_;
 }
 
-/** Returns a feasible solution to the MINLP 
- * The heuristic constructs a MIP based approximating all univariate functions appearing in nonlinear constraints 
+/** Returns a feasible solution to the MINLP
+ * The heuristic constructs a MIP based approximating all univariate functions appearing in nonlinear constraints
  * The linear approximation is obtained by adding inner chords linking pairs of points until covering the range of each variable **/
 int
 HeuristicInnerApproximation::solution(double &solutionValue, double *betterSolution)
@@ -148,7 +148,7 @@ si->messageHandler()->setLogLevel(2);
 #ifdef DEBUG_BON_HEURISTIC
 cout << "Loading problem into si\n";
 #endif
-extractInnerApproximation(*nlp, *si, newSolution, true); // Call the function construncting the inner approximation description 
+extractInnerApproximation(*nlp, *si, newSolution, true); // Call the function construncting the inner approximation description
 #ifdef DEBUG_BON_HEURISTIC
 cout << "problem loaded\n";
 cout << "**** Running optimization ****\n";
@@ -199,7 +199,7 @@ if(feasible ) {
     memcpy(newSolution,minlp->x_sol(),numberColumns*sizeof(double));
   }
 
- 
+
   for (int iColumn=0;iColumn<numberColumns;iColumn++) {
     if (variableType[iColumn] != Bonmin::TMINLP::CONTINUOUS) {
         minlp->SetVariableUpperBound(iColumn, memUpp[iColumn]);
@@ -207,7 +207,6 @@ if(feasible ) {
     }
   }
 }
-#endif
 #endif
 
 if(feasible) {
@@ -231,7 +230,7 @@ std::cout<<"Inner approximation returnCode = "<<returnCode<<std::endl;
 return returnCode;
 }
 
-/** Get an inner-approximation constraint obtained by drawing a chord linking the two given points x and x2. 
+/** Get an inner-approximation constraint obtained by drawing a chord linking the two given points x and x2.
  * This only applies to nonlinear constraints featuring univariate functions (f(x) <= y).**/
 bool
 HeuristicInnerApproximation::getMyInnerApproximation(OsiTMINLPInterface &si, OsiCuts &cs, int ind,
@@ -239,7 +238,7 @@ HeuristicInnerApproximation::getMyInnerApproximation(OsiTMINLPInterface &si, Osi
 
   int n, m, nnz_jac_g, nnz_h_lag;
   Ipopt::TNLP::IndexStyleEnum index_style;
-        TMINLP2TNLP * problem = si.problem(); 
+        TMINLP2TNLP * problem = si.problem();
   problem->get_nlp_info(n, m, nnz_jac_g, nnz_h_lag, index_style);
 
 
@@ -282,7 +281,7 @@ HeuristicInnerApproximation::getMyInnerApproximation(OsiTMINLPInterface &si, Osi
     OsiRowCut newCut;
     newCut.setGloballyValidAsInteger(1);
     newCut.setLb(lb);
-    
+
       //********* Perspective Extension ********//
     int* ids = problem->get_const_xtra_id(); // vector of indices corresponding to the binary variable activating the corresponding constraint
     int binary_id = (ids == NULL) ? -1 : ids[ind]; // Get the index of the corresponding indicator binary variable
@@ -300,7 +299,7 @@ HeuristicInnerApproximation::getMyInnerApproximation(OsiTMINLPInterface &si, Osi
   }
   return false;
 }
-void 
+void
 HeuristicInnerApproximation::extractInnerApproximation(OsiTMINLPInterface & nlp, OsiSolverInterface &si,
                                                        const double * x, bool getObj) {
    int n;
@@ -308,10 +307,10 @@ HeuristicInnerApproximation::extractInnerApproximation(OsiTMINLPInterface & nlp,
    int nnz_jac_g;
    int nnz_h_lag;
    Ipopt::TNLP::IndexStyleEnum index_style;
-   TMINLP2TNLP * problem = nlp.problem(); 
+   TMINLP2TNLP * problem = nlp.problem();
    //Get problem information
    problem->get_nlp_info(n, m, nnz_jac_g, nnz_h_lag, index_style);
-   
+
    vector<int> jRow(nnz_jac_g);
    vector<int> jCol(nnz_jac_g);
    vector<double> jValues(nnz_jac_g);
@@ -323,14 +322,14 @@ HeuristicInnerApproximation::extractInnerApproximation(OsiTMINLPInterface & nlp,
        jCol[i]--;
      }
    }
-   
+
    //get Jacobian
    problem->eval_jac_g(n, x, 1, m, nnz_jac_g, NULL, NULL,
        jValues());
-   
+
    vector<double> g(m);
    problem->eval_g(n, x, 1, m, g());
-   
+
    vector<int> nonLinear(m);
    //store non linear constraints (which are to be removed from IA)
    int numNonLinear = 0;
@@ -365,21 +364,21 @@ HeuristicInnerApproximation::extractInnerApproximation(OsiTMINLPInterface & nlp,
          rowUp[ind] = infty;
        ind++;
      }
-   
+
    }
-   
+
    CoinPackedMatrix mat(true, jRow(), jCol(), jValues(), nnz_jac_g);
    mat.setDimensions(m, n); // In case matrix was empty, this should be enough
-   
+
    //remove non-linear constraints
    mat.deleteRows(numNonLinear, nonLinear());
-   
+
    int numcols = nlp.getNumCols();
    vector<double> obj(numcols);
    for (int i = 0; i < numcols; i++)
      obj[i] = 0.;
-   
-   si.loadProblem(mat, nlp.getColLower(), nlp.getColUpper(), 
+
+   si.loadProblem(mat, nlp.getColLower(), nlp.getColUpper(),
                   obj(), rowLow(), rowUp());
    const Bonmin::TMINLP::VariableType* variableType = problem->var_types();
    for (int i = 0; i < n; i++) {
@@ -400,53 +399,53 @@ HeuristicInnerApproximation::extractInnerApproximation(OsiTMINLPInterface & nlp,
      } else {
        addObjVar = true;
      }
-   
+
      if (addObjVar) {
        nlp.addObjectiveFunction(si, x);
      }
    }
-   
+
    // Hassan IA initial description
    int InnerDesc = 1;
    if (InnerDesc == 1) {
      OsiCuts cs;
-   
+
      double * p = CoinCopyOfArray(colLower, n);
      double * pp = CoinCopyOfArray(colLower, n);
      double * up = CoinCopyOfArray(colUpper, n);
-   
+
      const int& nbAp = nbAp_;
      std::vector<int> nbG(m, 0);// Number of generated points for each nonlinear constraint
-   
+
      std::vector<double> step(n);
-   
+
      for (int i = 0; i < n; i++) {
-   
+
        if (colUpper[i] > 1e08) {
          up[i] = 0;
        }
-   
+
        if (colUpper[i] > 1e08 || colLower[i] < -1e08 || (variableType[i]
            == TMINLP::BINARY) || (variableType[i] == TMINLP::INTEGER)) {
          step[i] = 0;
        } else
          step[i] = (up[i] - colLower[i]) / (nbAp);
-   
+
        if (colLower[i] < -1e08) {
          p[i] = 0;
          pp[i] = 0;
        }
-   
+
      }
      vector<double> g_p(m);
      vector<double> g_pp(m);
-   
+
      for (int j = 1; j <= nbAp; j++) {
-   
+
        for (int i = 0; i < n; i++) {
          pp[i] += step[i];
        }
-   
+
        problem->eval_g(n, p, 1, m, g_p());
        problem->eval_g(n, pp, 1, m, g_pp());
        double diff = 0;
@@ -463,18 +462,17 @@ HeuristicInnerApproximation::extractInnerApproximation(OsiTMINLPInterface & nlp,
          varInd++;
        }
      }
-   
+
      for(int i = 0; (i< m && constTypes[i] == Ipopt::TNLP::NON_LINEAR); i++) {
       //  getConstraintOuterApproximation(cs, i, colUpper, NULL, true);// Generate Tangents at current point
          getMyInnerApproximation(nlp, cs, i, p, up);// Generate a chord connecting the two points
      }
 
-        delete [] p; 
+        delete [] p;
         delete [] pp;
-        delete [] up; 
+        delete [] up;
      si.applyCuts(cs);
    }
   }
 
 }
-
